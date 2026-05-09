@@ -79,7 +79,6 @@ after the dependencies are installed, type `npm start` and visit the version 1.0
 
 ### Team
 
-![smartbizlord](https://avatars.githubusercontent.com/u/103539335?v=4) 
 
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
