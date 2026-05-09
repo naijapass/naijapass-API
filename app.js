@@ -17,7 +17,7 @@ const ApiError = require('./utils/ApiError');
 const { jsonHeader } = require('./middlewares/headers');
 const indexRouterV1 = require('./routes/v1/');
 const cron = require('node-cron');
-const Event = require('./models/Event');
+const Event = require('./models/event');
 
 const app = express();
 

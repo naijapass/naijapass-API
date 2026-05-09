@@ -1,7 +1,7 @@
 // controllers/event.controller.js
 const httpStatus = require('http-status');
 const catchAsync = require('../utils/catchAsync');
-const Event = require('../models/Event');
+const Event = require('../models/event');
 const QRCode = require('qrcode');
 const r2 = require('../utils/cloud.r2.bucket')
 const crypto = require('crypto');

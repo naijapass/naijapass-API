@@ -2,8 +2,8 @@
 const httpStatus = require('http-status');
 const catchAsync = require('../utils/catchAsync');
 const User = require('../models/user');
-const Event = require('../models/Event');
-const Ticket = require('../models/Ticket');
+const Event = require('../models/event');
+const Ticket = require('../models/ticket');
 const Payout = require('../models/payout'); // Add this
 
 // Get organizer's wallet balance and payout info
