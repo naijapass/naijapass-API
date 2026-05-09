@@ -82,16 +82,15 @@ after the dependencies are installed, type `npm start` and visit the version 1.0
 ![smartbizlord](https://avatars.githubusercontent.com/u/103539335?v=4) 
 
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[Oladimeji Amusa](https://github.com/smartbizlord)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 
 ![mustafa](https://avatars.githubusercontent.com/u/94189602?v=4)
 
 
- &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; [Mustafa Madiba](https://github.com/blessme247)
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; [Mustafa Madiba](https://github.com/mustafadevop)
 
 ### Enquiries
 
-[Send A Mail](mailto:smartbizlord@gmail.com)[^1]
 
 [^1]: Happy coding :wave:
 
