@@ -53,8 +53,8 @@ app.set('trust proxy', false);
 const corsOptions = {
   origin: [
     'http://localhost:5173', 
-    'https://dashboard.maje.com.ng',
-    'https://maje.com.ng'
+    'https://dashboard.naijapass.com.ng',
+    'https://naijapass.com.ng'
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'X-Requested-With'],

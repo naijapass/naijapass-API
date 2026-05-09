@@ -1,6 +1,6 @@
 
 
-## MajeBites
+## Naijapass
 
 ### Brief Section
 
