@@ -28,7 +28,7 @@
   "homepage": "https://github.com/Naijapass/naijapass-API#readme",
   "dependencies": {
     "@treblle/express": "^1.0.2",
-    "aws-sdk": "^1.18.0",
+    "aws-sdk": "^2.1353.0",
     "axios": "^1.11.0",
     "bcrypt": "^6.0.0",
     "bcryptjs": "^2.4.3",
