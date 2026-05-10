@@ -1,7 +1,7 @@
 {
-  "name": "showpass",
+  "name": "naijapass",
   "version": "1.0.0",
-  "description": "Showpass",
+  "description": "Naijapass",
   "main": "./bin/www.js",
   "scripts": {
     "dev": "nodemon ./bin/www",
@@ -10,7 +10,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Showpass/showpass-API.git"
+    "url": "git+https://github.com/Naijapass/naijapass-API.git"
   },
   "keywords": [
     "api",
@@ -23,13 +23,12 @@
   "author": "Mustafadevop",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/Showpass/showpass-API/issues"
+    "url": "https://github.com/Naijapass/naijapass-API/issues"
   },
-  "homepage": "https://github.com/Showpass/showpass-API#readme",
+  "homepage": "https://github.com/Naijapass/naijapass-API#readme",
   "dependencies": {
     "@treblle/express": "^1.0.2",
-    "agora-access-token": "^2.0.4",
-    "aws-sdk": "^2.1353.0",
+    "aws-sdk": "^1.18.0",
     "axios": "^1.11.0",
     "bcrypt": "^6.0.0",
     "bcryptjs": "^2.4.3",
@@ -43,26 +42,23 @@
     "express-mongo-sanitize": "^2.2.0",
     "express-rate-limit": "^6.7.0",
     "express-redis-cache": "^1.1.3",
-    "firebase-admin": "^13.4.0",
     "helmet": "^6.0.1",
     "http-errors": "~1.6.3",
     "http-status": "^1.5.3",
     "joi": "^17.7.0",
     "jsonwebtoken": "^9.0.2",
-    "livekit-server-sdk": "^2.14.2",
-    "mailtrap": "^4.3.0",
+    "mailtrap": "^3.1.1",
     "moment": "^2.29.4",
     "mongoose": "^6.8.0",
     "morgan": "^1.10.1",
     "multer": "^2.0.1",
     "node-cron": "^4.2.1",
-    "nodemailer": "^7.0.12",
+    "nodemailer": "^8.0.7",
     "nodemon": "^3.1.10",
     "qrcode": "^1.5.4",
     "react-native-worklets-core": "^1.6.0",
-    "redis": "^4.6.7",
-    "sharp": "^0.30.7",
-    "socket.io": "^4.8.1",
+    "redis": "^5.12.1",
+    "sharp": "^0.34.5",
     "uuid": "^11.1.0",
     "validator": "^13.15.26",
     "winston": "^3.8.2",

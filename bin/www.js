@@ -3,7 +3,6 @@ const app = require('../app');
 const http = require('http');
 const config = require('../config/auth');
 const logger = require('../config/logger');
-const { Server } = require('socket.io');
 
 
 const AWS = require('aws-sdk');
@@ -61,7 +60,7 @@ process.on('SIGTERM', () => {
   if (server) server.close();
 });
 
-const port = normalizePort(config.port || '3000');
+const port = normalizePort(config.port || '7227');
 app.set('port', port);
 
 // Start server
