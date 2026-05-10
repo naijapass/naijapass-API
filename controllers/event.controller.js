@@ -81,7 +81,7 @@ const createEvent = catchAsync(async (req, res) => {
   event.shareId = event._id.toString();
 
   // Generate and save shareUrl
-  event.shareUrl = `${process.env.FRONTEND_URL}/organizer/event/${event.shareId}`;
+  event.shareUrl = `${process.env.FRONTEND_URL}/buy-ticket/${event.shareId}`;
 
   // OPTIONAL: Generate and save QR code
   const qrCodeDataUrl = await QRCode.toDataURL(event.shareUrl, {
