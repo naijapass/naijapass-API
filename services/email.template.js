@@ -313,7 +313,7 @@ export const TICKET_EMAIL_TEMPLATE = `
         </div>
 
         <p style="margin-top:24px;font-size:13px;color:#64748b;text-align:center">
-          Need assistance? Contact us at <a href="mailto:support@naijapass.com" style="color:#023020">support@naijapass.com</a>
+          Need assistance? Contact us at <a href="mailto:support@naijapass.com.ng" style="color:#023020">support@naijapass.com.ng</a>
         </p>
       </div>
 
