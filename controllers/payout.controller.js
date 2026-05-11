@@ -136,8 +136,67 @@ const processPayoutsManually = catchAsync(async (req, res) => {
   });
 });
 
+const requestWithdrawal = catchAsync(async (req, res) => {
+  const userId = req.user.id;
+  const { amount, fee, netAmount } = req.body;
+  
+  const user = await User.findById(userId);
+  
+  if (!user) {
+    return res.status(httpStatus.NOT_FOUND).json({
+      status: false,
+      message: 'User not found'
+    });
+  }
+  
+  if (amount > user.wallet.availableBalance) {
+    return res.status(httpStatus.BAD_REQUEST).json({
+      status: false,
+      message: 'Insufficient balance'
+    });
+  }
+  
+  if (amount < 1000) {
+    return res.status(httpStatus.BAD_REQUEST).json({
+      status: false,
+      message: 'Minimum withdrawal amount is ₦1,000'
+    });
+  }
+  
+  if (!user.bankDetails?.accountNumber) {
+    return res.status(httpStatus.BAD_REQUEST).json({
+      status: false,
+      message: 'Please add bank details in settings before withdrawing'
+    });
+  }
+  
+  // Create payout record with status 'pending' - NO DEDUCTION YET
+  const payout = await Payout.create({
+    organizer: userId,
+    amount: netAmount,
+    status: 'pending',
+    reference: `WD-${Date.now()}-${userId.toString().slice(-6)}`,
+    bankDetails: user.bankDetails
+  });
+  
+  
+  
+  res.status(httpStatus.OK).json({
+    status: true,
+    message: 'Withdrawal request submitted successfully. Funds will be deducted upon approval.',
+    data: {
+      payoutId: payout._id,
+      amount: netAmount,
+      fee: fee,
+      requestedAmount: amount,
+      reference: payout.reference,
+      status: 'pending'
+    }
+  });
+});
 module.exports = {
   getWalletBalance,
   getPayoutHistory,
-  processPayoutsManually
+  processPayoutsManually,
+  requestWithdrawal
 };

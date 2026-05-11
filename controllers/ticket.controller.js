@@ -5,7 +5,7 @@ const Ticket = require('../models/ticket');
 const QRCode = require('qrcode');
 const crypto = require('crypto');
 const r2 = require('../utils/cloud.r2.bucket');
-const { sendTicketEmail } = require('../services/email.service');
+const { sendTicketEmail, sendOrganizerTicketSoldEmail } = require('../services/email.service');
 const User = require('../models/user');
 const axios = require('axios');
 
@@ -72,46 +72,52 @@ const createTicketAndSendEmail = catchAsync(async (req, res) => {
     amount
   } = req.body;
 
-  // ============ STEP 1: VERIFY PAYMENT WITH PAYSTACK ============
-  console.log(` Verifying payment with reference: ${paymentReference}`);
+  // ============ STEP 1: VERIFY PAYMENT WITH PAYSTACK (SKIP FOR FREE) ============
+  const isFreeTicket = amount === 0;
   
-  const verification = await verifyPaystackPayment(paymentReference);
-  
-  if (!verification || !verification.status) {
-    return res.status(httpStatus.BAD_REQUEST).json({
-      status: false,
-      message: 'Payment verification failed. Please try again.'
-    });
-  }
-  
-  // Check if payment was successful
-  if (verification.data.status !== 'success') {
-    return res.status(httpStatus.BAD_REQUEST).json({
-      status: false,
-      message: `Payment not successful. Status: ${verification.data.status}`
-    });
-  }
-  
-  // Verify the amount matches
-  const paidAmount = verification.data.amount / 100; // Convert from kobo/cents
-  if (paidAmount !== amount) {
-    return res.status(httpStatus.BAD_REQUEST).json({
-      status: false,
-      message: 'Payment amount mismatch. Please contact support.'
-    });
-  }
-  
-  // Verify the payment hasn't been used before
-  const existingTicket = await Ticket.findOne({ paymentReference });
-  if (existingTicket) {
-    return res.status(httpStatus.BAD_REQUEST).json({
-      status: false,
-      message: 'This payment reference has already been used.'
-    });
+  if (!isFreeTicket) {
+    console.log(` Verifying payment with reference: ${paymentReference}`);
+    
+    const verification = await verifyPaystackPayment(paymentReference);
+    
+    if (!verification || !verification.status) {
+      return res.status(httpStatus.BAD_REQUEST).json({
+        status: false,
+        message: 'Payment verification failed. Please try again.'
+      });
+    }
+    
+    if (verification.data.status !== 'success') {
+      return res.status(httpStatus.BAD_REQUEST).json({
+        status: false,
+        message: `Payment not successful. Status: ${verification.data.status}`
+      });
+    }
+    
+    const paidAmount = verification.data.amount / 100;
+    if (paidAmount !== amount) {
+      return res.status(httpStatus.BAD_REQUEST).json({
+        status: false,
+        message: 'Payment amount mismatch. Please contact support.'
+      });
+    }
+    
+    const existingTicket = await Ticket.findOne({ paymentReference });
+    if (existingTicket) {
+      return res.status(httpStatus.BAD_REQUEST).json({
+        status: false,
+        message: 'This payment reference has already been used.'
+      });
+    }
+  } else {
+    console.log(`Free ticket - skipping payment verification`);
+    // Generate a reference for free tickets if not provided
+    if (!paymentReference) {
+      paymentReference = `FREE-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    }
   }
 
   // ============ STEP 2: PROCEED WITH TICKET CREATION ============
-  // Get event
   const event = await Event.findById(eventId);
   if (!event) {
     return res.status(httpStatus.NOT_FOUND).json({
@@ -120,7 +126,6 @@ const createTicketAndSendEmail = catchAsync(async (req, res) => {
     });
   }
 
-  // Get ticket tier
   const tier = event.ticketTiers.id(ticketTierId);
   if (!tier) {
     return res.status(httpStatus.BAD_REQUEST).json({
@@ -130,8 +135,6 @@ const createTicketAndSendEmail = catchAsync(async (req, res) => {
   }
 
   const quantity = attendees.length;
-
-  // Check availability
   const available = tier.quantity - tier.sold;
   if (available < quantity) {
     return res.status(httpStatus.BAD_REQUEST).json({
@@ -140,32 +143,27 @@ const createTicketAndSendEmail = catchAsync(async (req, res) => {
     });
   }
 
-  // Calculate amount for wallet (remove ₦100 per ticket)
-  const originalTicketPrice = tier.price;
-  const amountForWallet = Math.max(0, originalTicketPrice - 100);
-  const totalAmountForWallet = amountForWallet * quantity;
+  // Calculate amounts: For free tickets, no fee
+  const organizerPrice = tier.price; // What organizer earns (0 for free tickets)
+  const platformFee = isFreeTicket ? 0 : Math.ceil(organizerPrice * 0.08);
+  const customerPrice = organizerPrice + platformFee;
+  const totalOrganizerEarnings = organizerPrice * quantity;
 
   const createdTickets = [];
+  const organizer = await User.findById(event.organizer);
 
   // Create tickets for EACH attendee
   for (let i = 0; i < quantity; i++) {
     const attendee = attendees[i];
     const ticketCode = generateTicketCode();
 
-    // Upload QR code to R2 with attendee's name
     const qrCodeUrl = await uploadQRCodeToR2(ticketCode, event.title, attendee.fullName);
-
-    // Generate base64 for database storage
     const qrCodeDataUrl = await QRCode.toDataURL(ticketCode, {
       width: 300,
       margin: 2,
-      color: {
-        dark: '#023020',
-        light: '#FFFFFF'
-      }
+      color: { dark: '#023020', light: '#FFFFFF' }
     });
 
-    // Create ticket for THIS attendee with payment reference
     const ticket = await Ticket.create({
       event: event._id,
       eventTitle: event.title,
@@ -179,31 +177,30 @@ const createTicketAndSendEmail = catchAsync(async (req, res) => {
       organizerPhone: event.organizerPhone,
       organizerEmail: event.organizerEmail,
       ticketTierName: tier.name,
-      ticketPrice: originalTicketPrice,
+      ticketPrice: organizerPrice,
+      customerPrice: isFreeTicket ? 0 : customerPrice,
+      platformFee: platformFee,
       buyerName: attendee.fullName,
       buyerEmail: attendee.email,
       buyerPhone: attendee.phone,
       quantity: 1,
-      totalAmount: originalTicketPrice,
+      totalAmount: organizerPrice,
       ticketCode,
       qrCodeDataUrl: qrCodeDataUrl,
       qrCodeUrl: qrCodeUrl,
       paymentReference,
-      paymentStatus: 'success',
+      paymentStatus: isFreeTicket ? 'free' : 'success',
     });
 
     createdTickets.push(ticket);
 
-    // Send email to attendee
     const formattedDate = new Date(event.startDate).toLocaleDateString('en-US', {
-      weekday: 'long',
-      month: 'long',
-      day: 'numeric',
-      year: 'numeric'
+      weekday: 'long', month: 'long', day: 'numeric', year: 'numeric'
     });
 
-    const eventLink = `${process.env.FRONTEND_URL}/event/${event.shareId}`;
+    const eventLink = `${process.env.FRONTEND_URL}/buy-ticket/${event.shareId}`;
 
+    // Send email to attendee (buyer)
     const ticketData = {
       name: attendee.fullName,
       eventTitle: event.title,
@@ -219,36 +216,60 @@ const createTicketAndSendEmail = catchAsync(async (req, res) => {
       organizerEmail: event.organizerEmail,
       ticketType: tier.name,
       quantity: 1,
-      ticketPrice: originalTicketPrice,
+      ticketPrice: isFreeTicket ? 'FREE' : `₦${customerPrice.toLocaleString()}`,
       ticketCode: ticketCode,
       qrCodeImage: qrCodeUrl,
       eventLink
     };
 
     await sendTicketEmail(attendee.email, ticketData);
-    console.log(` Ticket sent to ${attendee.fullName} at ${attendee.email}`);
+    console.log(` Ticket sent to attendee: ${attendee.fullName} at ${attendee.email}`);
+
+    // Send notification to organizer
+    if (organizer && organizer.email) {
+      const organizerData = {
+        organizerName: organizer.fullName,
+        eventTitle: event.title,
+        eventDate: formattedDate,
+        eventTime: `${event.startTime} - ${event.endTime}`,
+        eventVenue: event.venue,
+        eventCity: event.city,
+        buyerName: attendee.fullName,
+        buyerEmail: attendee.email,
+        buyerPhone: attendee.phone,
+        ticketType: tier.name,
+        quantity: 1,
+        ticketCode: ticketCode,
+        ticketPrice: isFreeTicket ? 0 : organizerPrice,
+        platformFee: platformFee,
+        customerPaid: isFreeTicket ? 0 : customerPrice,
+        organizerEarnings: organizerPrice,
+        dashboardUrl: `${process.env.FRONTEND_URL}/organizer/dashboard`,
+      };
+      
+      await sendOrganizerTicketSoldEmail(organizer.email, organizerData);
+      console.log(` Notification sent to organizer: ${organizer.fullName} at ${organizer.email}`);
+    }
   }
 
   // Update event ticket sales
   tier.sold += quantity;
   event.ticketsSold += quantity;
-  event.revenue += totalAmountForWallet;
+  event.revenue += totalOrganizerEarnings;
   await event.save();
 
-  // Update organizer's wallet
-  const organizer = await User.findById(event.organizer);
-  
-  if (organizer) {
-    organizer.wallet.balance = (organizer.wallet.balance || 0) + totalAmountForWallet;
-    organizer.wallet.availableBalance = (organizer.wallet.availableBalance || 0) + totalAmountForWallet;
-    organizer.wallet.totalEarned = (organizer.wallet.totalEarned || 0) + totalAmountForWallet;
+  // Update organizer's wallet (only if paid tickets)
+  if (organizer && totalOrganizerEarnings > 0) {
+    organizer.wallet.balance = (organizer.wallet.balance || 0) + totalOrganizerEarnings;
+    organizer.wallet.availableBalance = (organizer.wallet.availableBalance || 0) + totalOrganizerEarnings;
+    organizer.wallet.totalEarned = (organizer.wallet.totalEarned || 0) + totalOrganizerEarnings;
     
     organizer.totalTicketsSold = (organizer.totalTicketsSold || 0) + quantity;
-    organizer.totalRevenue = (organizer.totalRevenue || 0) + totalAmountForWallet;
+    organizer.totalRevenue = (organizer.totalRevenue || 0) + totalOrganizerEarnings;
     
     await organizer.save();
     
-    console.log(` Organizer ${organizer.fullName} wallet credited: ₦${totalAmountForWallet} for ${quantity} tickets`);
+    console.log(` Organizer ${organizer.fullName} wallet credited: ₦${totalOrganizerEarnings} for ${quantity} tickets`);
   }
 
   res.status(httpStatus.CREATED).json({
@@ -261,7 +282,7 @@ const createTicketAndSendEmail = catchAsync(async (req, res) => {
         qrCodeUrl: t.qrCodeUrl,
         attendeeName: t.buyerName
       })),
-      payment: {
+      payment: isFreeTicket ? null : {
         reference: paymentReference,
         amount: amount,
         status: 'verified'

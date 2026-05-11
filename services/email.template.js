@@ -326,3 +326,125 @@ export const TICKET_EMAIL_TEMPLATE = `
 </body>
 </html>
 `.trim();
+
+export const ORGANIZER_TICKET_SOLD_EMAIL_TEMPLATE = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>New Ticket Sale - {eventTitle} | NaijaPass</title>
+  <style>
+    html,body{margin:0;padding:0;background:#f5f7fb;font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial; color:#0f1724}
+    .wrap{max-width:680px;margin:28px auto;padding:0}
+    .card{background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 10px 30px rgba(15,23,42,0.06)}
+    .banner{background:linear-gradient(135deg, #023020 0%, #034f30 50%, #023020 100%);padding:32px 24px;text-align:center}
+    .brand{font-weight:800;color:#fff;font-size:28px;margin:0}
+    .brand span{color:#FFD700}
+    .body{padding:32px}
+    .event-title{font-size:24px;font-weight:800;color:#023020;margin:0 0 8px}
+    .ticket-card{background:#f8fafc;border-radius:16px;padding:24px;margin:24px 0;border:2px solid #e2e8f0}
+    .info-row{display:flex;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid #e2e8f0}
+    .info-label{width:140px;font-weight:700;color:#475569}
+    .info-value{flex:1;color:#1e293b}
+    .success-badge{background:#d1fae5;color:#065f46;padding:8px 16px;border-radius:30px;display:inline-block;font-weight:700;font-size:14px;margin-bottom:20px}
+    .footer{padding:20px 24px;background:#fbfdff;border-top:1px solid #eef2f7;text-align:center;color:#64748b;font-size:13px}
+    .btn{display:inline-block;background:#023020;color:#fff;padding:12px 28px;border-radius:50px;text-decoration:none;font-weight:600;margin-top:16px}
+    @media (max-width:480px){
+      .body{padding:20px}
+      .info-row{flex-direction:column}
+      .info-label{margin-bottom:4px}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <div class="banner">
+        <h1 class="brand">🇳🇬 Naija<span>Pass</span></h1>
+      </div>
+
+      <div class="body">
+        <div class="success-badge">🎉 New Ticket Sale!</div>
+
+        <p style="font-size:16px;margin:0 0 8px">Dear <strong>{organizerName}</strong>,</p>
+        <p style="margin:0 0 24px;color:#475569">Congratulations! Someone just purchased tickets for your event <strong>{eventTitle}</strong>.</p>
+
+        <div class="ticket-card">
+          <h2 style="margin:0 0 16px;font-size:18px;color:#023020">🎟️ Event Details</h2>
+          
+          <div class="info-row">
+            <div class="info-label">Event:</div>
+            <div class="info-value">{eventTitle}</div>
+          </div>
+          <div class="info-row">
+            <div class="info-label">Date & Time:</div>
+            <div class="info-value">{eventDate} at {eventTime}</div>
+          </div>
+          <div class="info-row">
+            <div class="info-label">Venue:</div>
+            <div class="info-value">{eventVenue}, {eventCity}</div>
+          </div>
+        </div>
+
+        <div class="ticket-card">
+          <h2 style="margin:0 0 16px;font-size:18px;color:#023020">👤 Buyer Information</h2>
+          
+          <div class="info-row">
+            <div class="info-label">Name:</div>
+            <div class="info-value">{buyerName}</div>
+          </div>
+          <div class="info-row">
+            <div class="info-label">Email:</div>
+            <div class="info-value">{buyerEmail}</div>
+          </div>
+          <div class="info-row">
+            <div class="info-label">Phone:</div>
+            <div class="info-value">{buyerPhone}</div>
+          </div>
+        </div>
+
+        <div class="ticket-card">
+          <h2 style="margin:0 0 16px;font-size:18px;color:#023020">🎫 Ticket Details</h2>
+          
+          <div class="info-row">
+            <div class="info-label">Ticket Type:</div>
+            <div class="info-value">{ticketType}</div>
+          </div>
+          <div class="info-row">
+            <div class="info-label">Quantity:</div>
+            <div class="info-value">{quantity} ticket(s)</div>
+          </div>
+          <div class="info-row">
+            <div class="info-label">Ticket Code:</div>
+            <div class="info-value" style="font-family:monospace;font-weight:bold">{ticketCode}</div>
+          </div>
+        </div>
+
+        <div class="ticket-card">
+          <h2 style="margin:0 0 16px;font-size:18px;color:#023020">💰 Payment Summary</h2>
+          
+          <div class="info-row">
+            <div class="info-label">Ticket Price:</div>
+            <div class="info-value">₦{ticketPrice}</div>
+          </div>
+        </div>
+
+        <div style="text-align:center">
+          <a href="{dashboardUrl}" class="btn">Go to Dashboard →</a>
+        </div>
+
+        <p style="margin-top:24px;font-size:13px;color:#64748b;text-align:center">
+          Need assistance? Contact us at <a href="mailto:support@naijapass.com.ng" style="color:#023020">support@naijapass.com.ng</a>
+        </p>
+      </div>
+
+      <div class="footer">
+        <p style="margin:0">© {year} NaijaPass. All rights reserved.</p>
+        <p style="margin:8px 0 0;font-size:12px">Secure ticket powered by NaijaPass</p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+`.trim();

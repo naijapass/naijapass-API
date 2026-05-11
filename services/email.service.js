@@ -2,7 +2,8 @@
 import { 
   ORGANIZER_MAGIC_LINK_EMAIL_TEMPLATE,
   ORGANIZER_WELCOME_EMAIL_TEMPLATE,
-  TICKET_EMAIL_TEMPLATE
+  TICKET_EMAIL_TEMPLATE,
+  ORGANIZER_TICKET_SOLD_EMAIL_TEMPLATE
 } from './email.template.js';
 import { mailtrapClient, sender } from './mailtrap.js';
 
@@ -115,5 +116,30 @@ export const sendOrganizerWelcomeEmail = async (to, { name, year = new Date().ge
 export const sendMagicLinkEmail = async (to, { name, magicLink, expiryMinutes }) => {
   const subject = 'Your NaijaPass Magic Link';
   const html = renderTemplate(ORGANIZER_MAGIC_LINK_EMAIL_TEMPLATE, { name, magicLink, expiryMinutes });
+  await sendEmail(to, subject, html);
+};
+
+export const sendOrganizerTicketSoldEmail = async (to, data) => {
+  const subject = ` New Ticket Sale - ${data.eventTitle}`;
+  const html = renderTemplate(ORGANIZER_TICKET_SOLD_EMAIL_TEMPLATE, {
+    organizerName: data.organizerName,
+    eventTitle: data.eventTitle,
+    eventDate: data.eventDate,
+    eventTime: data.eventTime,
+    eventVenue: data.eventVenue,
+    eventCity: data.eventCity,
+    buyerName: data.buyerName,
+    buyerEmail: data.buyerEmail,
+    buyerPhone: data.buyerPhone,
+    ticketType: data.ticketType,
+    quantity: data.quantity,
+    ticketCode: data.ticketCode,
+    ticketPrice: data.ticketPrice.toLocaleString(),
+    platformFee: data.platformFee.toLocaleString(),
+    customerPaid: data.customerPaid.toLocaleString(),
+    organizerEarnings: data.organizerEarnings.toLocaleString(),
+    dashboardUrl: data.dashboardUrl,
+    year: new Date().getFullYear(),
+  });
   await sendEmail(to, subject, html);
 };

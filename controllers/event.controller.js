@@ -62,11 +62,30 @@ const createEvent = catchAsync(async (req, res) => {
     bannerImage = await uploadToR2(req.files.image[0]);
   }
 
+  // Calculate platform fee (8% for paid tickets, 0 for free tickets)
   if (eventData.ticketTiers && eventData.ticketTiers.length > 0) {
-    eventData.ticketTiers = eventData.ticketTiers.map(tier => ({
-      ...tier,
-      price: tier.price + 100
-    }));
+    eventData.ticketTiers = eventData.ticketTiers.map(tier => {
+      const organizerPrice = tier.price; // What organizer earns
+      let platformFee = 0;
+      let customerPrice = organizerPrice;
+
+      // Only charge 8% fee if ticket is NOT free (price > 0)
+      if (organizerPrice > 0) {
+        platformFee = Math.ceil(organizerPrice * 0.08); // 8% fee, rounded up
+        customerPrice = organizerPrice + platformFee; // What customer pays
+      }
+      // Free tickets (price = 0) have 0% fee
+
+      return {
+        ...tier,
+        organizerPrice: organizerPrice,  // What organizer earns
+        platformFee: platformFee,        // 8% or 0 for free
+        customerPrice: customerPrice,    // What customer pays (organizerPrice + fee)
+        price: customerPrice,            // Store customer price for display
+        quantity: tier.quantity,
+        sold: tier.sold || 0
+      };
+    });
     eventData.totalTickets = eventData.ticketTiers.reduce((sum, tier) => sum + tier.quantity, 0);
   }
 
@@ -83,7 +102,7 @@ const createEvent = catchAsync(async (req, res) => {
   // Generate and save shareUrl
   event.shareUrl = `${process.env.FRONTEND_URL}/buy-ticket/${event.shareId}`;
 
-  // OPTIONAL: Generate and save QR code
+  // Generate and save QR code
   const qrCodeDataUrl = await QRCode.toDataURL(event.shareUrl, {
     width: 200,
     margin: 2,
@@ -207,23 +226,48 @@ const updateEvent = catchAsync(async (req, res) => {
     });
   }
 
-  // Add 100 to each ticket price ONLY if the price has changed
+  // Calculate platform fee (8% for paid tickets, 0 for free tickets) - ONLY IF PRICE CHANGED
   if (updates.ticketTiers && updates.ticketTiers.length > 0) {
     updates.ticketTiers = updates.ticketTiers.map((newTier) => {
-      // Find existing tier by name
+      // Find existing tier by ID or name (fallback to name)
       const existingTier = existingEvent.ticketTiers.find(
-        (tier) => tier.name === newTier.name
+        (tier) => tier._id?.toString() === newTier._id?.toString() || tier.name === newTier.name
       );
 
-      // Only add 100 if price has changed and tier exists
-      if (existingTier && newTier.price !== existingTier.price) {
-        return {
-          ...newTier,
-          price: newTier.price + 100
-        };
+      // Check if price has changed or if it's a new tier
+      const priceChanged = !existingTier || (existingTier && existingTier.price !== newTier.price);
+      
+      // Get the original organizer price (if exists)
+      const existingOrganizerPrice = existingTier?.organizerPrice || existingTier?.price || newTier.price;
+      
+      // Only recalculate if price changed
+      let organizerPrice = newTier.price;
+      let platformFee = existingTier?.platformFee || 0;
+      let customerPrice = existingTier?.customerPrice || newTier.price;
+      
+      if (priceChanged) {
+        organizerPrice = newTier.price;
+        
+        // Only charge 8% fee if ticket is NOT free (price > 0)
+        if (organizerPrice > 0) {
+          platformFee = Math.ceil(organizerPrice * 0.08); // 8% fee, rounded up
+          customerPrice = organizerPrice + platformFee; // What customer pays
+        } else {
+          // Free ticket
+          platformFee = 0;
+          customerPrice = 0;
+        }
       }
-      // If price hasn't changed or it's a new tier, keep as is
-      return newTier;
+      
+      return {
+        ...newTier,
+        organizerPrice: organizerPrice,  // What organizer earns
+        platformFee: platformFee,        // 8% or 0 for free
+        customerPrice: customerPrice,    // What customer pays
+        price: customerPrice,            // Store customer price for display
+        quantity: newTier.quantity,
+        sold: newTier.sold || existingTier?.sold || 0
+      };
     });
   }
 

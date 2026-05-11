@@ -20,4 +20,8 @@ router.route('/history')
     .get(allowedMethod, verifyToken, payoutController.getPayoutHistory)
     .all(unAllowedMethod);
 
+router.route('/withdraw')
+    .post(allowedMethod, verifyToken, payoutController.requestWithdrawal)
+    .all(unAllowedMethod);
+
 module.exports = router;
