@@ -62,6 +62,7 @@ export const sendTicketEmail = async (to, ticketData) => {
     quantity,
     ticketPrice,
     ticketCode,
+    matriculationNumber,
     qrCodeImage,
     eventLink
   } = ticketData;
@@ -77,6 +78,14 @@ export const sendTicketEmail = async (to, ticketData) => {
   // Prepare event image HTML
   const eventImageHtml = eventBannerImage 
     ? `<img src="${eventBannerImage}" alt="${eventTitle}" class="event-image" />`
+    : '';
+
+  const matriculationNumberRow = matriculationNumber
+    ? `
+          <div class="info-row">
+            <div class="info-label">Matric No:</div>
+            <div class="info-value">${matriculationNumber}</div>
+          </div>`
     : '';
 
   const subject = ` Your Ticket for ${eventTitle} - NaijaPass`;
@@ -98,6 +107,7 @@ export const sendTicketEmail = async (to, ticketData) => {
     quantity: quantity.toString(),
     ticketPrice: formattedPrice,
     ticketCode,
+    matriculationNumberRow,
     qrCodeImage,
     eventLink,
     year: new Date().getFullYear().toString()

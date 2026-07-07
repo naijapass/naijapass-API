@@ -17,6 +17,7 @@ const createEvent = {
         organizerName: Joi.string().required(),
         organizerEmail: Joi.string().required().email(),
         organizerPhone: Joi.string().optional().allow(''),
+        collectMatriculationNumber: Joi.boolean().optional(),
         // Accept either array or JSON string
         ticketTiers: Joi.alternatives().try(
             Joi.array().items(
@@ -77,6 +78,7 @@ const updateEvent = {
         organizerName: Joi.string().optional(),
         organizerEmail: Joi.string().optional().email(),
         organizerPhone: Joi.string().optional().allow(''),
+        collectMatriculationNumber: Joi.boolean().optional(),
         ticketTiers: Joi.array().items(
             Joi.object({
                 name: Joi.string().required(),

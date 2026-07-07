@@ -50,6 +50,7 @@ const createEvent = catchAsync(async (req, res) => {
       organizerName: req.body.organizerName,
       organizerEmail: req.body.organizerEmail,
       organizerPhone: req.body.organizerPhone,
+      collectMatriculationNumber: req.body.collectMatriculationNumber === 'true' || req.body.collectMatriculationNumber === true,
       ticketTiers: typeof req.body.ticketTiers === 'string' ? JSON.parse(req.body.ticketTiers) : req.body.ticketTiers,
       faq: req.body.faq ? (typeof req.body.faq === 'string' ? JSON.parse(req.body.faq) : req.body.faq) : []
     };
@@ -189,6 +190,7 @@ const getEventByShareId = catchAsync(async (req, res) => {
       endTime: event.endTime,
       bannerImage: event.bannerImage,
       organizerName: event.organizerName,
+      collectMatriculationNumber: event.collectMatriculationNumber,
       ticketTiers: event.ticketTiers,
       faq: event.faq,
       organizerEmail: event.organizerEmail,

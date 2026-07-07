@@ -70,6 +70,11 @@ const ticketSchema = new mongoose.Schema(
       type: String,
       default: ''
     },
+    matriculationNumber: {
+      type: String,
+      default: '',
+      trim: true
+    },
     quantity: {
       type: Number,
       required: true,

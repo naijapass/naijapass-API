@@ -68,9 +68,11 @@ const createTicketAndSendEmail = catchAsync(async (req, res) => {
     eventId,
     ticketTierId,
     attendees,
-    paymentReference,
+    paymentReference: requestPaymentReference,
     amount
   } = req.body;
+
+  let paymentReference = requestPaymentReference;
 
   // ============ STEP 1: VERIFY PAYMENT WITH PAYSTACK (SKIP FOR FREE) ============
   const isFreeTicket = amount === 0;
@@ -183,6 +185,7 @@ const createTicketAndSendEmail = catchAsync(async (req, res) => {
       buyerName: attendee.fullName,
       buyerEmail: attendee.email,
       buyerPhone: attendee.phone,
+      matriculationNumber: attendee.matriculationNumber || '',
       quantity: 1,
       totalAmount: organizerPrice,
       ticketCode,
@@ -218,6 +221,7 @@ const createTicketAndSendEmail = catchAsync(async (req, res) => {
       quantity: 1,
       ticketPrice: isFreeTicket ? 'FREE' : `₦${customerPrice.toLocaleString()}`,
       ticketCode: ticketCode,
+      matriculationNumber: attendee.matriculationNumber || '',
       qrCodeImage: qrCodeUrl,
       eventLink
     };
@@ -280,7 +284,8 @@ const createTicketAndSendEmail = catchAsync(async (req, res) => {
         id: t._id,
         ticketCode: t.ticketCode,
         qrCodeUrl: t.qrCodeUrl,
-        attendeeName: t.buyerName
+        attendeeName: t.buyerName,
+        matriculationNumber: t.matriculationNumber
       })),
       payment: isFreeTicket ? null : {
         reference: paymentReference,

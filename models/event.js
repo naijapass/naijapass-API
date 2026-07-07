@@ -49,6 +49,14 @@ const eventSchema = new mongoose.Schema(
         type: String, 
         default: '' 
     },
+    // longitude: { 
+    //     type: Number, 
+    //     default: 0 
+    // },
+    // latitude: { 
+    //     type: Number, 
+    //     default: 0 
+    // },
     endTime: { 
         type: String, 
         default: '' 
@@ -68,6 +76,10 @@ const eventSchema = new mongoose.Schema(
     organizerPhone: { 
         type: String, 
         default: '' 
+    },
+    collectMatriculationNumber: {
+        type: Boolean,
+        default: false
     },
     ticketTiers: [
       {

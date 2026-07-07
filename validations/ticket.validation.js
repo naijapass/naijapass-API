@@ -8,7 +8,8 @@ const createTicket = {
       Joi.object().keys({
         fullName: Joi.string().required(),
         email: Joi.string().email().required(),
-        phone: Joi.string().optional()
+        phone: Joi.string().optional().allow(''),
+        matriculationNumber: Joi.string().optional().allow('').max(100)
       })
     ).min(1).max(20).required(),
     paymentReference: Joi.string().required(),

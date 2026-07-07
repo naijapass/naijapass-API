@@ -277,6 +277,7 @@ export const TICKET_EMAIL_TEMPLATE = `
             <div class="info-label">Ticket Code:</div>
             <div class="info-value" style="font-family:monospace;font-weight:bold">{ticketCode}</div>
           </div>
+          {matriculationNumberRow}
         </div>
 
         <div class="ticket-card">
