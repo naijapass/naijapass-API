@@ -323,9 +323,25 @@ const checkInAttendee = catchAsync(async (req, res) => {
     });
   }
 
-  // Check if event has expired
+  // ============ FIX: Combine endDate and endTime ============
   const event = await Event.findById(ticket.event);
-  if (new Date(event.endDate) < new Date()) {
+  if (!event) {
+    return res.status(httpStatus.NOT_FOUND).json({
+      status: false,
+      message: 'Event not found'
+    });
+  }
+
+  const eventEndDateTime = new Date(event.endDate);
+  if (event.endTime) {
+    const [hours, minutes] = event.endTime.split(':').map(Number);
+    eventEndDateTime.setHours(hours || 0, minutes || 0, 0, 0);
+  } else {
+    eventEndDateTime.setHours(23, 59, 59, 999);
+  }
+
+  // Check if event has expired
+  if (new Date() > eventEndDateTime) {
     return res.status(httpStatus.BAD_REQUEST).json({
       status: false,
       message: 'Event has already ended'
@@ -459,17 +475,36 @@ const checkInTicket = catchAsync(async (req, res) => {
   }
 
   const now = new Date();
-  const eventEndDate = new Date(event.endDate);
-  eventEndDate.setHours(23, 59, 59, 999);
 
-  // Calculate check-in start time (2 hours before event)
+  // ============ FIX: Combine endDate and endTime ============
+  const eventEndDateTime = new Date(event.endDate);
+  if (event.endTime) {
+    const [hours, minutes] = event.endTime.split(':').map(Number);
+    eventEndDateTime.setHours(hours || 0, minutes || 0, 0, 0);
+  } else {
+    eventEndDateTime.setHours(23, 59, 59, 999);
+  }
+
+  // Check if event has ended
+  if (now > eventEndDateTime) {
+    return res.status(httpStatus.BAD_REQUEST).json({
+      status: false,
+      message: 'Event has ended. Ticket expired.',
+      data: {
+        eventEndDateTime,
+        ticketCode: ticket.ticketCode
+      }
+    });
+  }
+
+  // ============ FIX: Calculate check-in start time ============
   let checkInStartTime;
   if (event.startTime && event.startTime !== '') {
-    const [hours, minutes] = event.startTime.split(':');
-    const eventDateTime = new Date(event.startDate);
-    eventDateTime.setHours(parseInt(hours), parseInt(minutes), 0);
-    checkInStartTime = new Date(eventDateTime);
-    checkInStartTime.setHours(eventDateTime.getHours() - 2);
+    const [hours, minutes] = event.startTime.split(':').map(Number);
+    const eventStartDateTime = new Date(event.startDate);
+    eventStartDateTime.setHours(hours || 0, minutes || 0, 0, 0);
+    checkInStartTime = new Date(eventStartDateTime);
+    checkInStartTime.setHours(eventStartDateTime.getHours() - 2);
   } else {
     const eventStartDate = new Date(event.startDate);
     checkInStartTime = new Date(eventStartDate);
@@ -491,18 +526,6 @@ const checkInTicket = catchAsync(async (req, res) => {
     });
   }
 
-  // Check if event has ended
-  if (now > eventEndDate) {
-    return res.status(httpStatus.BAD_REQUEST).json({
-      status: false,
-      message: 'Event has ended. Ticket expired.',
-      data: {
-        eventEndDate,
-        ticketCode: ticket.ticketCode
-      }
-    });
-  }
-
   // Check-in the ticket
   ticket.checkedIn = true;
   ticket.checkedInAt = new Date();
@@ -510,7 +533,7 @@ const checkInTicket = catchAsync(async (req, res) => {
   await ticket.save();
 
   // Get organizer info who checked in
-  const organizer = await User.findById(req.user.id).select('name email');
+  const organizer = await User.findById(req.user.id).select('fullName email');
 
   res.status(httpStatus.OK).json({
     status: true,
@@ -527,7 +550,7 @@ const checkInTicket = catchAsync(async (req, res) => {
         checkedInAt: ticket.checkedInAt,
         checkedInBy: {
           id: organizer._id,
-          name: organizer.name
+          name: organizer.fullName
         }
       },
       event: {
