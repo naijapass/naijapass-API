@@ -6,6 +6,7 @@ const eventRoute = require('./event.route');
 const ticketRoute = require('./ticket.route');
 const { path } = require('../../app');
 const payoutRoute = require('./payout.route');
+const adminRoute = require('./admin.route');
 
 const router = express.Router();
 
@@ -14,6 +15,10 @@ const defaultRoutes = [
   {
     path: '/auth',
     route: authRoute,
+  },
+  {
+    path: '/admin',
+    route: adminRoute,
   },
   {
     path: '/payouts',

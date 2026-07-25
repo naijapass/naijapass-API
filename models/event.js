@@ -170,17 +170,40 @@ eventSchema.pre('save', function(next) {
 });
 
 // Static method to update expired events
+// models/Event.js
+
+// Static method to update expired events
 eventSchema.statics.updateExpiredEvents = async function() {
   const now = new Date();
-  const result = await this.updateMany(
-    {
-      endDate: { $lt: now },
-      status: { $in: ['published', 'draft'] }
-    },
-    { $set: { status: 'expired' } }
-  );
-  console.log(`Updated ${result.modifiedCount} events to expired status`);
-  return result;
+  
+  // Get all published/draft events
+  const events = await this.find({
+    status: { $in: ['published', 'draft'] }
+  });
+  
+  let expiredCount = 0;
+  
+  for (const event of events) {
+    // Combine endDate and endTime
+    const endDateTime = new Date(event.endDate);
+    
+    if (event.endTime) {
+      const [hours, minutes] = event.endTime.split(':').map(Number);
+      endDateTime.setHours(hours || 0, minutes || 0, 0, 0);
+    } else {
+      // If no endTime, set to end of day (23:59:59)
+      endDateTime.setHours(23, 59, 59, 999);
+    }
+    
+    // Check if event has expired
+    if (endDateTime < now) {
+      await this.findByIdAndUpdate(event._id, { status: 'expired' });
+      expiredCount++;
+    }
+  }
+  
+  console.log(`Updated ${expiredCount} events to expired status`);
+  return { modifiedCount: expiredCount };
 };
 
 

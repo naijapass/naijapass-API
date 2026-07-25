@@ -24,18 +24,10 @@ const app = express();
 
 cron.schedule('0 * * * *', async () => {
   console.log('Checking for expired events...');
+  console.log('Current time:', new Date().toISOString());
+  
   try {
-    const now = new Date();
-    const result = await Event.updateMany(
-      {
-        endDate: { $lt: now },
-        status: { $in: ['published', 'draft'] }
-      },
-      { $set: { status: 'expired' } }
-    );
-    if (result.modifiedCount > 0) {
-      console.log(` Updated ${result.modifiedCount} events to expired status`);
-    }
+    const result = await Event.updateExpiredEvents();
   } catch (error) {
     console.error('Error updating expired events:', error);
   }
@@ -53,8 +45,11 @@ app.set('trust proxy', false);
 const corsOptions = {
   origin: [
     'http://localhost:5173', 
+    'http://localhost:5174',
     'https://dashboard.naijapass.com.ng',
-    'https://naijapass.com.ng'
+    'https://www.dashboard.naijapass.com.ng',
+    'https://naijapass.com.ng',
+    'https://www.naijapass.com.ng'
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'X-Requested-With'],
