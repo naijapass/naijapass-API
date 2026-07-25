@@ -163,9 +163,21 @@ const eventSchema = new mongoose.Schema(
 
 eventSchema.pre('save', function(next) {
   const now = new Date();
-  if (this.endDate && new Date(this.endDate) < now && this.status === 'published') {
+  
+  // Combine endDate and endTime
+  const endDateTime = new Date(this.endDate);
+  if (this.endTime) {
+    const [hours, minutes] = this.endTime.split(':').map(Number);
+    endDateTime.setHours(hours || 0, minutes || 0, 0, 0);
+  } else {
+    endDateTime.setHours(23, 59, 59, 999);
+  }
+  
+  // Only expire if endDateTime is in the past
+  if (endDateTime <= now && this.status === 'published') {
     this.status = 'expired';
   }
+  
   next();
 });
 
