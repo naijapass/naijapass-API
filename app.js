@@ -22,7 +22,9 @@ const Event = require('./models/event');
 const app = express();
 
 
-cron.schedule('0 * * * *', async () => {
+// cron.schedule('0 * * * *', async () => {
+  cron.schedule('* * * * *', async() => {
+
   console.log('Checking for expired events...');
   console.log('Current time:', new Date().toISOString());
   
